@@ -1,0 +1,12 @@
+{% extends "blogLayout.html" %}
+{% block content %}
+        <article class="media content-section">
+          <div class="media-body">
+              <h2 class="article-title">{{ project.title }}</h2>
+              <p><small class="text-muted">Start: {{ project.start_date.strftime('%Y-%m') }} End: {{ project.end_date.strftime('%Y-%m') }}</small>
+              </BR><small class="text">{{ project.description }}</small></p>
+            <h2><a class="article-title" href="#">Test 3</a></h2>
+            <p class="article-content">Test 4</p>
+          </div>
+        </article>
+{% endblock content %}

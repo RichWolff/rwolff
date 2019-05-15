@@ -51,6 +51,7 @@ class Projectheader(db.Model):
     description = db.Column(db.Text, nullable=False)
     start_date = db.Column(db.DateTime,nullable=False)
     end_date = db.Column(db.DateTime, nullable=True)
+    active_state = db.Column(db.String, nullable=True)
     details = db.relationship('Projectdetails', backref='project', lazy=True)
 
 class Projectdetails(db.Model):

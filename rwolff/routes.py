@@ -1,5 +1,5 @@
 from rwolff.forms import RegistrationForm, projectForm, LoginForm, UpdateAccountForm
-from rwolff.models import userPageView, User
+from rwolff.models import userPageView, User, Projectheader
 from rwolff import app, db, bcrypt, track_pageviews
 from flask import Flask, render_template, url_for, flash, redirect, request, make_response, session
 from flask_sqlalchemy import SQLAlchemy
@@ -72,18 +72,29 @@ def register():
 
 @app.route("/projects")
 @tracker
-@login_required
 def projects():
-    projects=None
+    projects=Projectheader.query.all()
     return render_template('projects.html',projects=projects)
 
 @app.route("/addProject", methods=['GET', 'POST'])
+@login_required
 def addProject():
     form = projectForm()
     if form.validate_on_submit():
+        project = Projectheader(title = form.title.data, description = form.description.data, start_date = form.start_date.data, end_date = form.end_date.data)
+        db.session.add(project)
+        db.session.commit()
         flash(f'Project created for {form.title.data}!', 'success')
         return redirect(url_for('projects'))
-    return render_template('addProject.html', title='Register', form=form)
+    return render_template('addProject.html', title='New Project', form=form)
+
+@app.route("/projects/<int:project_id>", methods=['GET', 'POST'])
+@login_required
+def project(project_id):
+    project = Projectheader.query.get_or_404(project_id)
+
+    return render_template('project.html', title='Project',project=project)
+
 
 @app.route("/login", methods=['GET', 'POST'])
 @tracker

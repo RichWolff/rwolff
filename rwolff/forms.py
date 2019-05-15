@@ -6,7 +6,7 @@ from wtforms.validators import DataRequired, Length, Email, EqualTo, AnyOf, Vali
 from rwolff.models import User
 
 class projectForm(FlaskForm):
-    title = StringField('Project Name', validators=[DataRequired(), Length(min=2, max=20)])
+    title = StringField('Project Name', validators=[DataRequired(), Length(min=2, max=100)])
     description = TextField('Project Description', validators=[DataRequired()])
     start_date = DateField('Start Date')
     end_date = DateField('End Date')

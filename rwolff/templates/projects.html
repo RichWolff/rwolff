@@ -1,27 +1,20 @@
-{% extends "staticPageLayout.html" %}
+{% extends "blogLayout.html" %}
 {% block content %}
+        {% for project in projects %}
+
         <article class="media content-section">
           <div class="media-body">
-            <div class="article-metadata">
-              About Me:
-              <small class="text-muted">A Brief History</small>
-            </div>
-            <h2>Who I am</h2>
-            <div class="row">
-                <div class="col-sm-3">
-                    <img src="{{url_for('static', filename='imgs/richWolff.JPG')}}" class="img-thumbnail" style="width:100%" />
-                </div>
-                <div class="col-sm-7">
-                    <p>I'm a {{ age }} year old Data Scientist from the Greater NYC Market. I specialize in using existing data science models to solve general business problems.</p>
-                    <p>Linkedin: <a href="{{ url_for('outboundLinks', url='https://www.linkedin.com/in/richwolff') }}" target="_blank">LinkedIn</a></p>
-                    <p>Github: <a href="{{ url_for('outboundLinks', url='https://github.com/RichWolff') }}" target="_blank">Github Repositories</a></p>
-                </div>
-            </div>
+            <h2>
+                {% if current_user.is_authenticated %}
+                    <a class="article-title" href="{{ url_for('project', project_id=project.id) }}">{{ project.title }}</a>
+                {% else %}
+                    {{ project.title }}
+                {% endif %}
+            </h2>
+            <p class="article-content">{{ project.description }}</p>
 
-
-
-            <h2>Who I am</h2>
-            <p class="article-content">Blah blah blah</p>
           </div>
         </article>
+
+        {% endfor %}
 {% endblock content %}
