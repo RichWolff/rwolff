@@ -1,6 +1,7 @@
 from flask_wtf import Form as FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextField,DateField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, AnyOf
+from wtforms.validators import DataRequired, Length, Email, EqualTo, AnyOf, ValidationError
+from rwolff.models import User
 
 class projectForm(FlaskForm):
     title = StringField('Project Name', validators=[DataRequired(), Length(min=2, max=20)])
@@ -14,14 +15,17 @@ class projectDetailsForm(FlaskForm):
     value = TextField('Value',validators=[DataRequired()])
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username',
-                           validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
+
+    def validate_email(self,email):
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('Email Already Exists. Please login with your existing email')
 
 
 class LoginForm(FlaskForm):

@@ -1,9 +1,14 @@
 from datetime import datetime
-from rwolff import db
+from rwolff import db, login_manager
+from flask_login import UserMixin
 
-class User(db.Model):
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     password = db.Column(db.String(60), nullable=False)
@@ -31,10 +36,11 @@ class userPageView(db.Model):
     from_page = db.Column(db.String, nullable=False)
     to_page =  db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user_agent = db.Column(db.String, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"userPageView('{self.session_id}', '{self.from_page}', '{self.to_page}', '{self.timestamp}')"
+        return f"userPageView(session_id:'{self.session_id}', user_id:{self.user_id}, from_page:'{self.from_page}', to_page:'{self.to_page}', date/time:'{self.timestamp}')"
 
 class Projectheader(db.Model):
     id = db.Column(db.Integer, primary_key=True)

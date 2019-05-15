@@ -3,7 +3,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 import datetime as dt
 from flask_bcrypt import Bcrypt
-
+from flask_login import LoginManager
 app = Flask(__name__)
 
 u = 'richwolff'
@@ -18,5 +18,9 @@ app.config['PERMANENT_SESSION_LIFETIME'] = dt.timedelta(days=2922) # Set for 8 Y
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+login_manager.login_message = u"Please login to view that page."
+login_manager.login_message_category = 'info'
 
 from rwolff import routes

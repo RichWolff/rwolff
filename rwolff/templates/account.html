@@ -1,0 +1,13 @@
+{% extends "blogLayout.html" %}
+{% block content %}
+        <article class="media content-section">
+          <div class="media-body">
+            <div class="article-metadata">
+              {{ current_user.email }}
+              <small class="text-muted">{{ current_user.username }}</small>
+            </div>
+            <h2><a class="article-title" href="#">Test 3</a></h2>
+            <p class="article-content">Test 4</p>
+          </div>
+        </article>
+{% endblock content %}
