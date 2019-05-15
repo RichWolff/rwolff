@@ -1,12 +1,14 @@
-from rwolff.forms import RegistrationForm, projectForm, LoginForm
+from rwolff.forms import RegistrationForm, projectForm, LoginForm, UpdateAccountForm
 from rwolff.models import userPageView, User
-from rwolff import app, db, bcrypt
+from rwolff import app, db, bcrypt, track_pageviews
 from flask import Flask, render_template, url_for, flash, redirect, request, make_response, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_user, current_user, logout_user, login_required
 import datetime as dt
 import functools
 import secrets
+import os
+from PIL import Image
 
 def tracker(func):
     @functools.wraps(func)
@@ -36,10 +38,12 @@ def tracker(func):
 
         # If user is clicking an outbound link, track this instead out /outboundLinks
         to_url = request.args.get('url', default=None, type=None) if base_url == request.url_root + 'outboundLinks' else base_url
-
         pv = userPageView(session_id = session_id, from_page = referrer_url, to_page = to_url, user_id = user_id, user_agent = user_agent)
-        db.session.add(pv)
-        db.session.commit()
+        if track_pageviews:
+            db.session.add(pv)
+            db.session.commit()
+        else:
+            print(pv)
         x = func()
         return x
     return wrapper
@@ -120,7 +124,39 @@ def outboundLinks():
     url = request.args.get('url', default=None, type=None)
     return redirect(url)
 
-@app.route("/account")
+
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
+
+    output_size = (125, 125)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+    return picture_fn
+
+@app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
-    return render_template('account.html', title='Account')
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_picture(form.picture.data)
+            current_user.image_file = picture_file
+        current_user.email = form.email.data
+        current_user.first_name = form.first_name.data
+        current_user.last_name = form.last_name.data
+        current_user.nickname = form.nickname.data
+        db.session.commit()
+        flash('Your account has been updated!','success')
+        return redirect(url_for('account'))
+
+    elif request.method == 'GET':
+        form.email.data = current_user.email
+        form.first_name.data = current_user.first_name
+        form.last_name.data = current_user.last_name
+        form.nickname.data = current_user.nickname
+    image_file = url_for('static', filename='profile_pics/'+ current_user.image_file)
+    return render_template('account.html', title='Account',image_file=image_file,form=form)
