@@ -48,7 +48,7 @@ a.article-title:hover {
   text-decoration: none;
 }
 
-.codeblock {
+pre code .codeblock {
   background-color: #eeeeee;
   border: 1px solid #999999;
   display: block;

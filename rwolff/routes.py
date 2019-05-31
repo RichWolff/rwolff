@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from flask_login import login_user, current_user, logout_user, login_required
 from slugify import slugify
+from bs4 import BeautifulSoup
 import datetime as dt
 import functools
 import secrets
@@ -223,6 +224,11 @@ def add_post():
 @tracker
 def posts():
     posts=Post.query.all()
+    for post in posts:
+        soup = BeautifulSoup(post.content, 'html.parser')
+        summary = soup.find('summary')
+        post.content = summary
+
     return render_template('posts.html',posts=posts)
 
 @app.route("/posts/<int:post_id>")
