@@ -18,6 +18,9 @@
             {% block content %}{% endblock %}
         </div>
         <div class="col-md-4">
+            {% if current_user.is_contributor or current_user.is_admin %}
+            <small><br></small>
+            {% endif %}
           <div class="content-section">
               <ul class="list-group">
                 <li class="list-group-item list-group-item-light">Latest Posts</li>

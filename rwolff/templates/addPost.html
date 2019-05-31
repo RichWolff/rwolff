@@ -24,6 +24,7 @@
                         {{ form.title(class="form-control form-control-lg") }}
                     {% endif %}
                 </div>
+
                 <div class="form-group">
                     {{ form.content.label(class="form-control-label") }}
                     {% if form.content.errors %}
@@ -35,28 +36,14 @@
                         </div>
                     {% else %}
                         {{ form.content(class="form-control form-control-lg",rows='20') }}
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.content.label(class="form-control-label") }}
-                    {% if form.content.errors %}
-                        {{ form.content(class="form-control form-control-lg is-invalid",rows='10') }}
-                        <div class="invalid-feedback">
-                            {% for error in form.content.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                          <textarea id="summernote" name="test"></textarea>
-                          <SCRIPT>
+                                             <SCRIPT>
                             $(document).ready(function() {
-                              $('#summernote').summernote();
+                              $('#content').summernote();
                             });
                         </SCRIPT>
                     {% endif %}
+
                 </div>
-
-
 
             </div>
             <div class="col-md-3">
