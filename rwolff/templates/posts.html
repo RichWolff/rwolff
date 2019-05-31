@@ -10,9 +10,11 @@
                 <article class="media content-section">
                     <div class="media-body">
                         <h2>
-                            <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">{{ post.title }}</a></br>{{ post.active_state }}
+                            <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">{{ post.title }}</a>
                         </h2>
-                        <p class="article-metadata">{{ post.date_posted.strftime('%Y-%m-%d') }} to {{ post.last_update.strftime('%Y-%m-%d') }}</p>
+                        <p class="article-metadata">
+                            Date Created: {{ post.date_posted.strftime('%Y-%m-%d') }} - Date Updated: {{ post.last_update.strftime('%Y-%m-%d') }} {% if not post.active_state == 'Active' %}<img height="10" width="10" src="{{ url_for('static',filename='imgs/red_dot.png') }}"/>{% endif %}
+                        </p>
                         <p class="article-content">{{ post.content|safe }}</p>
                         <small class="text-muted text-right align-bottom"> <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">Read Post</a></small>
                     </div>
