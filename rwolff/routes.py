@@ -64,6 +64,10 @@ def is_contributor(func):
             return redirect(url_for('home'))
     return wrapper
 
+@app.route('/testtest')
+def testtest():
+    return render_template('test.html')
+
 @app.route("/projects/add", methods=['GET', 'POST'])
 @is_contributor
 @login_required

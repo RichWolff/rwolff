@@ -1,13 +1,42 @@
-
-{% extends "createPostLayout.html" %}
-{% block sidebar %}
-<article class="media content-section">
-    <div class="container">
-        <form onsubmit="quote(); return false;">
-            <input autocomplete="off" autofocus id="symbol" placeholder="Symbol" type="text"/>
-            <input type="submit" value="Get Quote"/>
-        </form>
-        <p id="quote"></p>
-     </div>
-</article>
-{% endblock sidebar %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>bootstrap4</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.12/summernote-bs4.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.12/summernote-bs4.js"></script>
+  </head>
+  <body>
+    <div id="summernote"></div>
+    <button id="submit"></button>
+    <p id="done"></p>
+    <script>
+        $('#summernote').summernote({
+          toolbar: [
+            // [groupName, [list of button]]
+            ['style', ['bold', 'italic', 'underline', 'clear']],
+            ['font', ['strikethrough', 'superscript', 'subscript']],
+            ['fontsize', ['fontsize']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['height', ['height']],
+            ['insert', ['link','table','hr']],
+            ['misc',['fullscreen','codeview','undo','redo']]
+          ]
+        });
+      
+      // Get the button, and when the user clicks on it, execute myFunction
+        document.getElementById("submit").onclick = function() {myFunction()};
+        
+        /* myFunction toggles between adding and removing the show class, which is used to hide and show the dropdown content */
+        function myFunction() {
+          var markupStr = $('#summernote').summernote('code');
+          getElementById('done').innerHTML = markupStr;
+        }
+    </script>
+  </body>
+</html>

@@ -37,6 +37,27 @@
                         {{ form.content(class="form-control form-control-lg",rows='20') }}
                     {% endif %}
                 </div>
+                <div class="form-group">
+                    {{ form.content.label(class="form-control-label") }}
+                    {% if form.content.errors %}
+                        {{ form.content(class="form-control form-control-lg is-invalid",rows='10') }}
+                        <div class="invalid-feedback">
+                            {% for error in form.content.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                          <textarea id="summernote" name="test"></textarea>
+                          <SCRIPT>
+                            $(document).ready(function() {
+                              $('#summernote').summernote();
+                            });
+                        </SCRIPT>
+                    {% endif %}
+                </div>
+
+
+
             </div>
             <div class="col-md-3">
                 <div class="form-group">
@@ -78,26 +99,8 @@
 </div>
 
 
-<SCRIPT>
-var lastSegment = 1;
 
-function addRow(tableID) {
-    var tbody = document.querySelector("#" + tableID + " tbody");
-    var rows = tbody.querySelectorAll("tr");
 
-    if(rows.length < 10){ // limit the user from creating too many segments
-      // copy the first TR of the table
-      var newRow = rows[0].cloneNode(true);
-      // increment the last segment number and apply it to the new segment[] field
-      lastSegment = lastSegment + 1
-      newRow.querySelector("input[id='projectDesc']").name = 'projectDesc_' + lastSegment + '_';
-      // add the new row
-      tbody.appendChild(newRow);
-    } else {
-         alert("Maximum Number of bullets is 10.");
-    }
-}
-</SCRIPT>
 {% endblock content %}
 
 <!-- Project Side Bar Updates -->
