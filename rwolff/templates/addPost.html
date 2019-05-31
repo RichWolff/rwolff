@@ -1,5 +1,5 @@
 
-{% extends "createPostLayout.html" %}
+{% extends "staticPageLayout.html" %}
 
 
 {% block content %}
@@ -10,7 +10,7 @@
     {{ form.hidden_tag() }}
     <fieldset class="form-group">
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <div class="form-group">
                     {{ form.title.label(class="form-control-label") }}
                     {% if form.title.errors %}
@@ -25,42 +25,16 @@
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    {{ form.description.label(class="form-control-label") }}
-                    {% if form.description.errors %}
-                        {{ form.description(class="form-control form-control-lg is-invalid") }}
+                    {{ form.content.label(class="form-control-label") }}
+                    {% if form.content.errors %}
+                        {{ form.content(class="form-control form-control-lg is-invalid",rows='10') }}
                         <div class="invalid-feedback">
-                            {% for error in form.description.errors %}
+                            {% for error in form.content.errors %}
                                 <span>{{ error }}</span>
                             {% endfor %}
                         </div>
                     {% else %}
-                        {{ form.description(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.start_date.label(class="form-control-label") }}
-                    {% if form.start_date.errors %}
-                        {{ form.start_date(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.start_date.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.start_date(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.end_date.label(class="form-control-label") }}
-                    {% if form.end_date.errors %}
-                        {{ form.end_date(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.end_date.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.end_date(class="form-control form-control-lg") }}
+                        {{ form.content(class="form-control form-control-lg",rows='20') }}
                     {% endif %}
                 </div>
             </div>
@@ -75,7 +49,7 @@
                  </div>
             </div>
         </div>
-
+<!--
         <div class="col-lg-8 form-group">
             <p class="form-control-label"><input type="button" value="+" onClick="addRow('dataTable')" class="btn btn-secondary btn-sm" /> Add Detail</p>
             <table id="dataTable" style="padding:0;">
@@ -84,6 +58,7 @@
                 </tbody>
             </table>
         </div>
+-->
     </fieldset>
 
 
@@ -91,15 +66,18 @@
         <div class="form-group">
             {{ form.submit(class="btn btn-outline-info") }}
         </div>
-        {% if project %}
+
+        {% if post %}
         <div>
-            <a href="{{ url_for('delete_project', project_id=project.id) }}" class="text-danger">Delete Project</a>
+            <a href="{{ url_for('delete_post', post_id=post.id) }}" class="text-danger">Delete Post</a>
         </div>
         {% endif %}
 
     </form>
 
 </div>
+
+
 <SCRIPT>
 var lastSegment = 1;
 

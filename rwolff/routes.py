@@ -1,18 +1,22 @@
-from rwolff.forms import RegistrationForm, projectForm, LoginForm, UpdateAccountForm
-from rwolff.models import userPageView, User, Projectheader
+from rwolff.forms import RegistrationForm, projectForm, LoginForm, UpdateAccountForm, projectDetailsForm, postForm
+from rwolff.models import userPageView, User, Projectheader, Projectdetails, Post
 from rwolff import app, db, bcrypt, track_pageviews
-from flask import Flask, render_template, url_for, flash, redirect, request, make_response, session
+from flask import Flask, render_template, url_for, flash, redirect, request, make_response, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_user, current_user, logout_user, login_required
 import datetime as dt
 import functools
 import secrets
 import os
+import re
 from PIL import Image
+from butter_cms import ButterCMS
+client = ButterCMS('1cc7a7fe45fc350bf88d72b6d41561cb0e8fd02b')
+
 
 def tracker(func):
     @functools.wraps(func)
-    def wrapper():
+    def wrapper(**kwargs):
         #Only track user id if they are authenticated
         if current_user.is_authenticated:
             user_id = current_user.id
@@ -44,10 +48,55 @@ def tracker(func):
             db.session.commit()
         else:
             print(pv)
-        x = func()
+        x = func(**kwargs)
         return x
     return wrapper
 
+def is_contributor(func):
+    @functools.wraps(func)
+    def wrapper():
+        result = current_user.is_contributor
+        if result:
+            x = func()
+            return x
+        else:
+            flash(f'You do not have permission to do that.', 'info')
+            return redirect(url_for('home'))
+    return wrapper
+
+@app.route("/projects/add", methods=['GET', 'POST'])
+@is_contributor
+@login_required
+def add_project():
+    if request.method == 'POST':
+        try:
+            project = Projectheader(title = request.form['title'], description = request.form['description'], start_date = request.form['start_date'], end_date = request.form['end_date'],active_state=request.form['active_state'], Creator=current_user)
+            db.session.add(project)
+            db.session.flush()
+            for k,v in request.form.items():
+                if 'projectDesc' in k:
+                    if v is None or v == '':
+                        continue
+                    projectDeet = Projectdetails(
+                        project_id=project.id,
+                        attr = "Detail",
+                        value = v,
+                        displayOrder = int(re.findall('[0-9]', k)[0])
+                    )
+                    db.session.add(projectDeet)
+                    print(projectDeet)
+            print(project)
+            db.session.commit()
+            flash(f"Project created for {request.form['title']}!", 'success')
+            return redirect(url_for('projects'))
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            flash(f'Failed to create project','failure')
+    form = projectForm()
+    formDetails = projectDetailsForm()
+    formTags = projectDetailsForm()
+    return render_template('addProject.html', title='New Project', form=form, legend='Create a New Project', project=None, formDetails=formDetails, formTags=formTags)
 
 @app.route('/')
 @tracker
@@ -62,13 +111,12 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_pwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data,email=form.email.data,password=hashed_pwd)
+        user = User(email=form.email.data,password=hashed_pwd,role=2)
         db.session.add(user)
         db.session.commit()
         flash(f'Your account has been created! You are now able to log in', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
-
 
 @app.route("/projects")
 @tracker
@@ -76,26 +124,146 @@ def projects():
     projects=Projectheader.query.all()
     return render_template('projects.html',projects=projects)
 
-@app.route("/addProject", methods=['GET', 'POST'])
-@login_required
-def addProject():
-    form = projectForm()
-    if form.validate_on_submit():
-        project = Projectheader(title = form.title.data, description = form.description.data, start_date = form.start_date.data, end_date = form.end_date.data)
-        db.session.add(project)
-        db.session.commit()
-        flash(f'Project created for {form.title.data}!', 'success')
-        return redirect(url_for('projects'))
-    return render_template('addProject.html', title='New Project', form=form)
-
 @app.route("/projects/<int:project_id>", methods=['GET', 'POST'])
-@login_required
 def project(project_id):
     project = Projectheader.query.get_or_404(project_id)
-
     return render_template('project.html', title='Project',project=project)
 
+@app.route("/projects/<int:project_id>/delete", methods=['GET', 'POST'])
+@login_required
+def delete_project(project_id):
+    project = Projectheader.query.get_or_404(project_id)
+    if project.Creator != current_user:
+        abort(403)
+    db.session.delete(project)
+    db.session.commit()
+    flash('Project Removed.', 'success')
+    return redirect(url_for('projects'))
 
+
+@app.route("/projects/<int:project_id>/update", methods=['GET', 'POST'])
+@login_required
+def update_project(project_id):
+    project = Projectheader.query.get_or_404(project_id)
+
+    if project.Creator != current_user:
+        abort(403)
+
+    form = projectForm()
+    formDetails = projectDetailsForm()
+    formTags = projectDetailsForm()
+    if form.validate_on_submit():
+        project.title = form.title.data
+        project.description = form.description.data
+        project.start_date = form.start_date.data
+        project.end_date = form.end_date.data
+        project.active_state = form.active_state.data
+        db.session.commit()
+        flash('Project has been updated', 'success')
+        return redirect(url_for('project', project_id=project.id))
+
+    elif request.method == 'GET':
+        form.title.data = project.title
+        form.description.data = project.description
+        form.start_date.data = project.start_date
+        form.end_date.data = project.end_date
+        form.active_state.data = project.active_state
+
+    return render_template('addProject.html', title='Update Project', form=form, legend='Update Project',project = project, formDetails=formDetails, formTags=formTags)
+
+##### Blog Post Routes #####
+@app.route('/addPost', methods=['GET','POST'])
+def add_post():
+    if request.method == 'POST':
+        try:
+            post = Post(
+                title = request.form['title'],
+                content = request.form['content'],
+                active_state=request.form['active_state'],
+                Author=current_user
+            )
+            print(post)
+            db.session.add(post)
+            db.session.flush()
+            #if False: # Ignore any detail data
+                #for k,v in request.form.items():
+                #    if 'projectDesc' in k:
+                #        if v is None or v == '':
+                #            continue
+                #        projectDeet = Projectdetails(
+                #            project_id=project.id,
+                #            attr = "Detail",
+                #            value = v,
+                #            displayOrder = int(re.findall('[0-9]', k)[0])
+                #        )
+                #        db.session.add(projectDeet)
+                #        print(projectDeet)
+                #print(project)
+            db.session.commit()
+            flash(f"Post created for {request.form['title']}!", 'success')
+            return redirect(url_for('posts'))
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            flash(f'Failed to create post','failure')
+    form = postForm()
+    return render_template('addPost.html', title='New Post', form=form, legend='Create a New Post', post=None)#formDetails=formDetails, formTags=formTags)
+
+    #formDetails = projectDetailsForm()
+    #formTags = projectDetailsForm()
+
+@app.route("/posts")
+@tracker
+def posts():
+    posts=Post.query.all()
+    return render_template('posts.html',posts=posts)
+
+@app.route("/posts/<int:post_id>", methods=['GET', 'POST'])
+@tracker
+def post(**kwargs):
+    blogPost = Post.query.get_or_404(kwargs.get('post_id'))
+    return render_template('post.html', title='Post',blogPost=blogPost)
+
+@app.route("/posts/<int:post_id>/update", methods=['GET', 'POST'])
+@login_required
+def update_post(post_id):
+    blogPost = Post.query.get_or_404(post_id)
+
+    if blogPost.Author != current_user:
+        abort(403)
+
+    form = postForm()
+
+    if form.validate_on_submit():
+        blogPost.title = form.title.data
+        blogPost.content = form.content.data
+        blogPost.active_state = form.active_state.data
+        db.session.commit()
+        flash('Post has been updated', 'success')
+        return redirect(url_for('post', post_id=blogPost.id))
+
+    elif request.method == 'GET':
+        form.title.data = blogPost.title
+        form.content.data = blogPost.content
+        form.active_state.data = blogPost.active_state
+
+    return render_template('addPost.html', title='Update Post', form=form, legend='Update Post', post=blogPost)
+
+
+@app.route("/posts/<int:post_id>/delete", methods=['GET', 'POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.Author != current_user:
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Post Removed.', 'success')
+    return redirect(url_for('posts'))
+
+
+
+##### Account Register, Login, Logout, Etc ####
 @app.route("/login", methods=['GET', 'POST'])
 @tracker
 def login():

@@ -18,9 +18,23 @@ class User(db.Model, UserMixin):
     create_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     posts = db.relationship('Post', backref='Author', lazy=True)
+    role = db.Column(db.Integer, nullable=True)
+    projects = db.relationship('Projectheader', backref='Creator', lazy=True)
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image_file}')"
+
+    roles = {
+        0:'Admin',
+        1:'Contributor',
+        2:'Member'
+    }
+
+    def is_contributor(self):
+        return self.role in (0,1)
+
+    def is_admin(self):
+        return self.role == 0
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,9 +43,20 @@ class Post(db.Model):
     last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
+    active_state = db.Column(db.String, nullable=True)
+    details = db.relationship('PostDetails', backref='post', lazy=True)
     def __repr__(self):
         return f"Post('{self.title}', '{self.date_posted}')"
+
+class PostDetails(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    attr = db.Column(db.String(25), nullable=False)
+    value = db.Column(db.Text, nullable=False)
+    displayOrder = db.Column(db.Integer, nullable=False)
+    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    def __repr__(self):
+        return f"PostDetails(post='{Post.Title}',attr='{self.attr}', value='{self.value}')"
 
 class userPageView(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,13 +74,25 @@ class Projectheader(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
+    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     start_date = db.Column(db.DateTime,nullable=False)
     end_date = db.Column(db.DateTime, nullable=True)
     active_state = db.Column(db.String, nullable=True)
-    details = db.relationship('Projectdetails', backref='project', lazy=True)
+    details = db.relationship('Projectdetails', backref='project', lazy=True, cascade="all,delete")
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Projectheader(title='{self.title}', description='{self.description}', active_state={self.active_state})"
 
 class Projectdetails(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('projectheader.id'), nullable=False)
     attr = db.Column(db.String(25), nullable=False)
     value = db.Column(db.Text, nullable=False)
+    displayOrder = db.Column(db.Integer, nullable=False)
+    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"Projectdetails(project_id='{self.project_id}', attr={self.attr}, value='{self.value}', displayOrder:{self.displayOrder}, last updated:'{self.date_last_update}')"

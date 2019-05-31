@@ -1,0 +1,19 @@
+{% extends "blogLayout.html" %}
+{% block content %}
+    {% if current_user==blogPost.user_id or current_user.is_admin %}
+        <small><a href="{{ url_for('update_post',post_id= blogPost.id) }}" class="text-info">Edit Post</a></small>
+    {% endif %}
+            <article class="media content-section">
+              <div class="media-body">
+                <h2>
+                    {{ blogPost.title }}
+                </h2>
+                <p class="article-metadata">
+                    Created Date: {{ blogPost.date_posted.strftime('%Y-%m-%d') }}<br>
+                    Last Updated: {{ blogPost.last_update.strftime('%Y-%m-%d') }}
+                </p>
+                <BR>
+                <p class="article-content">{{ blogPost.content|safe }}</p>
+              </div>
+            </article>
+{% endblock content %}

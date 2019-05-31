@@ -24,6 +24,13 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
 }
 
+.center {
+  margin: auto;
+  width: 50%;
+  border: 3px solid green;
+  padding: 10px;
+}
+
 .content-section {
   background: #ffffff;
   padding: 10px 20px;
@@ -39,6 +46,13 @@ h1, h2, h3, h4, h5, h6 {
 a.article-title:hover {
   color: #428bca;
   text-decoration: none;
+}
+
+.codeblock {
+  background-color: #eeeeee;
+  border: 1px solid #999999;
+  display: block;
+  padding: 20px;
 }
 
 .article-content {

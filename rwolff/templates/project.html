@@ -1,5 +1,8 @@
 {% extends "blogLayout.html" %}
 {% block content %}
+    {% if current_user==project.user_id or current_user.is_admin %}
+        <small><a href="{{ url_for('update_project',project_id= project.id) }}" class="text-info">Edit Project</a></small>
+    {% endif %}
         <article class="media content-section">
           <div class="media-body">
               <h2 class="article-title">{{ project.title }}</h2>

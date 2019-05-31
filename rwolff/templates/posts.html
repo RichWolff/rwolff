@@ -1,0 +1,30 @@
+{% extends "blogLayout.html" %}
+{% block content %}
+    {% if current_user.is_contributor or current_user.is_admin %}
+        <small><a href="{{ url_for('add_post') }}" class="text-info">Add New Post</a></small>
+    {% endif %}
+
+    {% for post in posts %}
+        {% if current_user.is_admin or post.Creator == current_user %}
+            <article class="media content-section">
+              <div class="media-body">
+                <h2>
+                    <a class="article-title" href="{{ url_for('post', post_id=post.id) }}">{{ post.title }}</a></br>{{ post.active_state }}
+                </h2>
+                <p class="article-metadata">{{ post.date_posted.strftime('%Y-%m-%d') }} to {{ post.last_update.strftime('%Y-%m-%d') }}</p>
+                <p class="article-content">{{ post.content|safe }}</p>
+              </div>
+            </article>
+        {% elif post.active_state == 'Active' %}
+            <article class="media content-section">
+              <div class="media-body">
+                <h2>
+                    {{ post.title }}
+                </h2>
+                <p class="article-metadata">{{ post.date_posted.strftime('%Y-%m-%d') }} to {{ post.last_update.strftime('%Y-%m-%d') }}</p>
+                <p class="article-content">{{ post.content|safe }}</p>
+              </div>
+            </article>
+        {% endif %}
+    {% endfor %}
+{% endblock content %}

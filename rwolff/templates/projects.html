@@ -1,20 +1,47 @@
 {% extends "blogLayout.html" %}
 {% block content %}
-        {% for project in projects %}
+    {% if current_user.is_contributor or current_user.is_admin %}
+        <small><a href="{{ url_for('add_project') }}" class="text-info">Add New Project</a></small>
+    {% endif %}
 
-        <article class="media content-section">
-          <div class="media-body">
-            <h2>
-                {% if current_user.is_authenticated %}
-                    <a class="article-title" href="{{ url_for('project', project_id=project.id) }}">{{ project.title }}</a>
-                {% else %}
+    {% for project in projects %}
+        {% if current_user.is_admin or project.Creator == current_user %}
+            <article class="media content-section">
+              <div class="media-body">
+                <h2>
+                    <a class="article-title" href="{{ url_for('project', project_id=project.id) }}">{{ project.title }}</a></br>{{ project.active_state }}
+                </h2>
+                <p class="article-metadata">{{ project.start_date.strftime('%Y-%m') }} to {{ project.end_date.strftime('%Y-%m') }}</p>
+                <p class="article-content">{{ project.description }}</p>
+                <UL>
+                    {% for detail in project.details %}
+                        {% if detail.attr == 'Detail' %}
+                            <LI>{{ detail.value }}</LI>
+                        {% endif %}
+                    {% endfor %}
+                </UL>
+
+
+              </div>
+            </article>
+        {% elif project.active_state == 'Active' %}
+            <article class="media content-section">
+              <div class="media-body">
+                <h2>
                     {{ project.title }}
-                {% endif %}
-            </h2>
-            <p class="article-content">{{ project.description }}</p>
+                </h2>
+                <p class="article-metadata">{{ project.start_date.strftime('%Y-%m') }} to {{ project.end_date.strftime('%Y-%m') }}</p>
+                <p class="article-content">{{ project.description }}</p>
+                <UL>
+                    {% for detail in project.details %}
+                        {% if detail.attr == 'Detail' %}
+                            <LI>{{ detail.value }}</LI>
+                        {% endif %}
+                    {% endfor %}
+                </UL>
 
-          </div>
-        </article>
-
-        {% endfor %}
+              </div>
+            </article>
+        {% endif %}
+    {% endfor %}
 {% endblock content %}

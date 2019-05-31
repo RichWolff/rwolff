@@ -5,8 +5,9 @@
         <img class="rounded-circle account-img" src="{{ image_file }}">
         <div class="media-body">
           <h2 class="account-heading">{% if current_user.nickname %} {{ current_user.nickname }} {% else %}{{ current_user.email }}{% endif %}</h2>
-          <p class="text-secondary">Account Created: {{ current_user.create_date }}<BR>
-          Last Edited: {{ current_user.last_update }}</p>
+          <p class="text-secondary">Account Created: {{ current_user.create_date }}
+          </BR>Last Edited: {{ current_user.last_update }}
+          </BR>{{ current_user.is_contributor() }} </p>
         </div>
       </div>
       <form method="POST" action="" enctype="multipart/form-data">

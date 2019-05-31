@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 import datetime as dt
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
+from flask_login.mixins import AnonymousUserMixin
 app = Flask(__name__)
 
 u = 'richwolff'
@@ -20,7 +21,14 @@ app.config['PERMANENT_SESSION_LIFETIME'] = dt.timedelta(days=2922) # Set for 8 Y
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
+
+class Anonymous(AnonymousUserMixin):
+  def __init__(self):
+    self.is_contributor = False
+    self.is_admin = False
+
 login_manager = LoginManager(app)
+login_manager.anonymous_user = Anonymous
 login_manager.login_view = 'login'
 login_manager.login_message = u"Please login to view that page."
 login_manager.login_message_category = 'info'
