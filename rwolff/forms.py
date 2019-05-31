@@ -15,6 +15,7 @@ class projectForm(FlaskForm):
 
 class postForm(FlaskForm):
     title = StringField('Post Title', validators=[DataRequired(), Length(min=2, max=100)])
+    slug = StringField('Url Slug', validators=[Length(min=2, max=100)])
     content = TextAreaField('Content', validators=[DataRequired()])
     active_state = RadioField('Project Display State', choices = [('Active','Active'), ('Preview','Preview'), ('Disable','Disable')])
     submit = SubmitField('Submit Post')

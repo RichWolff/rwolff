@@ -9,7 +9,7 @@
                     {{ blogPost.title }}
                 </h2>
                 <p class="article-metadata">
-                    <small>Created Date: {{ blogPost.date_posted.strftime('%Y-%m-%d') }} - Last Updated: {{ blogPost.last_update.strftime('%Y-%m-%d') }} - Share: <a href="{{ url_for(request.endpoint, post_id=blogPost.id) }}">Link To Post</a></small>
+                    <small>Created Date: {{ blogPost.date_posted.strftime('%Y-%m-%d') }} - Last Updated: {{ blogPost.last_update.strftime('%Y-%m-%d') }} - Share: <a href="{{ url_for(request.endpoint, slug=blogPost.slug) }}">Link To Post</a></small>
                 </p>
                 <BR>
                 <p class="article-content">{{ blogPost.content|safe }}</p>

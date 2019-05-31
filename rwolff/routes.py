@@ -3,16 +3,15 @@ from rwolff.models import userPageView, User, Projectheader, Projectdetails, Pos
 from rwolff import app, db, bcrypt, track_pageviews
 from flask import Flask, render_template, url_for, flash, redirect, request, make_response, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 from flask_login import login_user, current_user, logout_user, login_required
+from slugify import slugify
 import datetime as dt
 import functools
 import secrets
 import os
 import re
 from PIL import Image
-from butter_cms import ButterCMS
-client = ButterCMS('1cc7a7fe45fc350bf88d72b6d41561cb0e8fd02b')
-
 
 def tracker(func):
     @functools.wraps(func)
@@ -180,13 +179,17 @@ def update_project(project_id):
 def add_post():
     if request.method == 'POST':
         try:
+
             post = Post(
                 title = request.form['title'],
                 content = request.form['content'],
                 active_state=request.form['active_state'],
-                Author=current_user
+                Author=current_user,
+                slug=slugify(request.form['title'])
             )
+
             print(post)
+
             db.session.add(post)
             db.session.flush()
             #if False: # Ignore any detail data
@@ -222,16 +225,19 @@ def posts():
     posts=Post.query.all()
     return render_template('posts.html',posts=posts)
 
-@app.route("/posts/<int:post_id>", methods=['GET', 'POST'])
+@app.route("/posts/<int:post_id>")
+@app.route("/posts/<path:slug>")
 @tracker
 def post(**kwargs):
-    blogPost = Post.query.get_or_404(kwargs.get('post_id'))
+    blogPost = Post.query.filter((Post.id == kwargs.get('post_id')) | (Post.slug == kwargs.get('slug'))).first()
+    print(blogPost)
     return render_template('post.html', title='Post',blogPost=blogPost)
+
 
 @app.route("/posts/<int:post_id>/update", methods=['GET', 'POST'])
 @login_required
-def update_post(post_id):
-    blogPost = Post.query.get_or_404(post_id)
+def update_post(**kwargs):
+    blogPost = Post.query.filter((Post.id == kwargs.get('post_id')) | (Post.slug == kwargs.get('slug'))).first()
 
     if blogPost.Author != current_user:
         abort(403)
@@ -242,14 +248,16 @@ def update_post(post_id):
         blogPost.title = form.title.data
         blogPost.content = form.content.data
         blogPost.active_state = form.active_state.data
+        blogPost.slug = form.slug.data
         db.session.commit()
         flash('Post has been updated', 'success')
-        return redirect(url_for('post', post_id=blogPost.id))
+        return redirect(url_for('post', slug=blogPost.slug))
 
     elif request.method == 'GET':
         form.title.data = blogPost.title
         form.content.data = blogPost.content
         form.active_state.data = blogPost.active_state
+        form.slug.data = blogPost.slug
 
     return render_template('addPost.html', title='Update Post', form=form, legend='Update Post', post=blogPost)
 

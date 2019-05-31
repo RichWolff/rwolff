@@ -42,11 +42,12 @@ class Post(db.Model):
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
+    slug = db.Column(db.String(255), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     active_state = db.Column(db.String, nullable=True)
     details = db.relationship('PostDetails', backref='post', lazy=True)
     def __repr__(self):
-        return f"Post('{self.title}', '{self.date_posted}')"
+        return f"Post('{self.title}', '{self.date_posted}, slug='{self.slug}')"
 
 class PostDetails(db.Model):
     id = db.Column(db.Integer, primary_key=True)
