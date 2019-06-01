@@ -5,6 +5,7 @@ import datetime as dt
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_login.mixins import AnonymousUserMixin
+from flask_share import Share
 app = Flask(__name__)
 
 u = 'richwolff'
@@ -21,6 +22,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = dt.timedelta(days=2922) # Set for 8 Y
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
+Share(app)
 
 class Anonymous(AnonymousUserMixin):
   def __init__(self):

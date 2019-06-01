@@ -5,7 +5,20 @@
     {% endif %}
 
     {% for post in posts %}
-        {% if not post.activate_state == 'Active' %}
+        {% if post.active_state == 'Active' %}
+                <article class="media content-section">
+                    <div class="media-body">
+                        <h2>
+                            <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">{{ post.title }}</a>
+                        </h2>
+                        <p class="article-metadata">
+                            <small>Date Created: {{ post.date_posted.strftime('%Y-%m-%d') }} - Date Updated: {{ post.last_update.strftime('%Y-%m-%d') }} {% if not post.active_state == 'Active' %}<img height="10" width="10" src="{{ url_for('static',filename='imgs/red_dot.png') }}"/>{% endif %}</small>
+                        </p>
+                        <p class="article-content">{{ post.content|safe }}</p>
+                        <small class="text-muted text-right align-bottom"> <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">Read Post</a></small>
+                    </div>
+                </article>
+        {% else  %}
             {% if (current_user.is_admin or post.Creator == current_user) %}
                 <article class="media content-section">
                     <div class="media-body">
@@ -13,13 +26,12 @@
                             <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">{{ post.title }}</a>
                         </h2>
                         <p class="article-metadata">
-                            Date Created: {{ post.date_posted.strftime('%Y-%m-%d') }} - Date Updated: {{ post.last_update.strftime('%Y-%m-%d') }} {% if not post.active_state == 'Active' %}<img height="10" width="10" src="{{ url_for('static',filename='imgs/red_dot.png') }}"/>{% endif %}
+                            <small>Date Created: {{ post.date_posted.strftime('%Y-%m-%d') }} - Date Updated: {{ post.last_update.strftime('%Y-%m-%d') }} {% if not post.active_state == 'Active' %}<img height="10" width="10" src="{{ url_for('static',filename='imgs/red_dot.png') }}"/>{% endif %}</small>
                         </p>
                         <p class="article-content">{{ post.content|safe }}</p>
                         <small class="text-muted text-right align-bottom"> <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">Read Post</a></small>
                     </div>
                 </article>
-
             {% endif %}
         {% endif %}
     {% endfor %}
