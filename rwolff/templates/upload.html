@@ -1,0 +1,12 @@
+
+{% extends "staticPageLayout.html" %}
+
+
+{% block content %}
+<div class="content-section">
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('postUploadImages') }}">
+  <p><input type="file" name="file[]" multiple=""></p>
+  <p><input type="submit" value="add"></p>
+</form>
+</div>
+{% endblock content %}

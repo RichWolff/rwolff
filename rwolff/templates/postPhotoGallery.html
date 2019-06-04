@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    {% include 'head.html' %}
+<body>
+        <div class="row">
+            {% for img in images %}
+            <div class="col-md-2 img-item">
+
+                <img class="col-md-12 thumbnail" src="{{ url_for('static',filename='imgs/posts/'+img) }}" alt="a galerie test" />
+                <i class="fa fa-check"></i>
+            </div>
+            {% endfor %}
+    </div>
+    </BODY>
+</HTML>

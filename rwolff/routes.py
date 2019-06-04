@@ -1,7 +1,7 @@
 from rwolff.forms import RegistrationForm, projectForm, LoginForm, UpdateAccountForm, projectDetailsForm, postForm
 from rwolff.models import userPageView, User, Projectheader, Projectdetails, Post
 from rwolff import app, db, bcrypt, track_pageviews
-from flask import Flask, render_template, url_for, flash, redirect, request, make_response, session, jsonify
+from flask import Flask, render_template, url_for, flash, redirect, request, make_response, session, jsonify, send_file, Response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from flask_login import login_user, current_user, logout_user, login_required
@@ -11,6 +11,7 @@ import datetime as dt
 import functools
 import secrets
 import os
+import glob
 import re
 from PIL import Image
 
@@ -186,7 +187,7 @@ def add_post():
                 content = request.form['content'],
                 active_state=request.form['active_state'],
                 Author=current_user,
-                slug=slugify(request.form['title'])
+                slug = slugify(request.form['title']) if request.form['slug'] == '' else request.form['slug']
             )
 
             print(post)
@@ -209,13 +210,13 @@ def add_post():
                 #print(project)
             db.session.commit()
             flash(f"Post created for {request.form['title']}!", 'success')
-            return redirect(url_for('posts'))
+            return redirect(url_for('update_post',post_id=post.id))
         except Exception as e:
             print(e)
             db.session.rollback()
             flash(f'Failed to create post','failure')
     form = postForm()
-    return render_template('addPost.html', title='New Post', form=form, legend='Create a New Post', post=None)#formDetails=formDetails, formTags=formTags)
+    return render_template('addPost.html', title='New Post', form=form, legend='Create a New Post', post=None, images=postPhotoGallery())#formDetails=formDetails, formTags=formTags)
 
     #formDetails = projectDetailsForm()
     #formTags = projectDetailsForm()
@@ -223,7 +224,7 @@ def add_post():
 @app.route("/posts")
 @tracker
 def posts():
-    posts=Post.query.all()
+    posts=Post.query.order_by(Post.date_posted.desc()).all()
     for post in posts:
         soup = BeautifulSoup(post.content, 'html.parser')
         summary = soup.find('summary')
@@ -245,6 +246,8 @@ def post(**kwargs):
 def update_post(**kwargs):
     blogPost = Post.query.filter((Post.id == kwargs.get('post_id')) | (Post.slug == kwargs.get('slug'))).first()
 
+    images = postPhotoGallery()
+
     if blogPost.Author != current_user:
         abort(403)
 
@@ -265,7 +268,7 @@ def update_post(**kwargs):
         form.active_state.data = blogPost.active_state
         form.slug.data = blogPost.slug
 
-    return render_template('addPost.html', title='Update Post', form=form, legend='Update Post', post=blogPost)
+    return render_template('addPost.html', title='Update Post', form=form, legend='Update Post', post=blogPost,images=postPhotoGallery())
 
 
 @app.route("/posts/<int:post_id>/delete", methods=['GET', 'POST'])
@@ -322,7 +325,7 @@ def outboundLinks():
     return redirect(url)
 
 
-def save_picture(form_picture):
+def save_account_picture(form_picture):
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_picture.filename)
     picture_fn = random_hex + f_ext
@@ -334,13 +337,51 @@ def save_picture(form_picture):
     i.save(picture_path)
     return picture_fn
 
+def save_post_pictures(form_picture):
+    random_hex = secrets.token_hex(8)
+    picture_fn = form_picture.filename
+    picture_path = os.path.join(app.root_path, 'static/imgs/posts', picture_fn)
+
+    output_size = (125, 125)
+    i = Image.open(form_picture)
+    i.save(picture_path)
+    return picture_fn
+
+
+def postPhotoGallery():
+    homeDir = os.path.dirname(os.path.abspath(__file__))
+    imgs = url_for('static',filename='imgs/posts')
+    folder = os.path.join(homeDir+imgs)
+
+    types = ('*.png', '*.jpg','*.gif','*.jpeg') # the tuple of file types
+    files_grabbed = []
+
+    for files in types:
+        pathToFiles = os.path.join(folder,files)
+        files_grabbed.extend(glob.glob(pathToFiles))
+
+    files_grabbed = [os.path.basename(file) for file in files_grabbed]
+
+    return files_grabbed
+
+@app.route("/postUploadImages", methods=["GET","POST"])
+def postUploadImages():
+    files = request.files.getlist("file[]")
+    print(files)
+    if not files == []:
+        uploaded_files = request.files.getlist("file[]")
+        for file in uploaded_files:
+            save_post_pictures(file)
+        return render_template('upload.html')
+    return render_template('upload.html')
+
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
-            picture_file = save_picture(form.picture.data)
+            picture_file = save_account_picture(form.picture.data)
             current_user.image_file = picture_file
         current_user.email = form.email.data
         current_user.first_name = form.first_name.data
@@ -357,3 +398,18 @@ def account():
         form.nickname.data = current_user.nickname
     image_file = url_for('static', filename='profile_pics/'+ current_user.image_file)
     return render_template('account.html', title='Account',image_file=image_file,form=form)
+
+@app.route("/getSuperstoreData")
+def getSuperstoreData():
+    homeDir = os.path.dirname(os.path.abspath(__file__))
+    superStoreFile = url_for('static',filename='superstore/P1-SuperStoreUS-2015.csv')
+
+    folder = os.path.join(homeDir+superStoreFile)
+    with open(folder,'r') as file:
+        csv = file.read()
+
+    return Response(
+        csv,
+        mimetype="text/csv",
+        headers={"Content-disposition":"attachment; filename=superstore_data.csv"}
+    )

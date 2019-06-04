@@ -1,17 +1,34 @@
 {% extends "blogLayout.html" %}
 {% block content %}
+
+<!-- Add font awesome icons -->
+
+
     {% if current_user==blogPost.user_id or current_user.is_admin %}
         <small><a href="{{ url_for('update_post',post_id= blogPost.id) }}" class="text-info">Edit Post</a></small>
     {% endif %}
-            <article class="media content-section">
-              <div class="media-body">
+    <div class="row">
+        <article class="media content-section">
+            <div class="media-body">
                 <h2>
                     {{ blogPost.title }}
                 </h2>
                 <p class="article-metadata">
-                    <small>Created Date: {{ blogPost.date_posted.strftime('%Y-%m-%d') }} - Last Updated: {{ blogPost.last_update.strftime('%Y-%m-%d') }} - Share: <a href="{{ url_for(request.endpoint, slug=blogPost.slug) }}">Link To Post</a></small>
+                    <small>Created Date: {{ blogPost.date_posted.strftime('%Y-%m-%d') }} - Last Updated: {{ blogPost.last_update.strftime('%Y-%m-%d') }} - Share: <a href="{{ url_for('post', slug=blogPost.slug) }}">Link To Post</a></small>
                 </p>
-                <p class="article-content">{{ blogPost.content|safe }}</p><p class=“text-muted”>{{ share.create(title='Share with: ',sites='linkedin,twitter') }}</p>
-              </div>
-            </article>
+                <p class="article-content">{{ blogPost.content|safe }}</p>
+                <a href="#top"><img height="40" width="40" src="{{ url_for('static',filename='imgs/backtotop.png') }}"/></a>
+            </div>
+
+        </article>
+    </div>
+    <div class="row">
+        <p class=“text-muted”>
+            Liked My Post? Share The Love! -
+            <!-- Sharingbutton Twitter -->
+            <a href="https://twitter.com/intent/tweet?text=Prefill&url={{ url_for('post', slug=blogPost.slug, _external=True) }}" target="_blank" class="fa fa-twitter"></a>
+            <a href="http://www.linkedin.com/shareArticle?mini=true&url={{ url_for('post', slug=blogPost.slug, _external=True) }}&title={{ blogPost.title }}&source=richwolff.pythonanywhere.com" target="_blank" class="fa fa-linkedin"></a>
+            <a href="mailto:?subject=Subject;&body={{ url_for('post', slug=blogPost.slug, _external=True) }}" target="_blank" class="fa fa-envelope"></a>
+        </p>
+    </div>
 {% endblock content %}
