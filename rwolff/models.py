@@ -1,7 +1,7 @@
 from datetime import datetime
 from rwolff import db, login_manager
 from flask_login import UserMixin
-
+from slugify import slugify
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -36,28 +36,38 @@ class User(db.Model, UserMixin):
     def is_admin(self):
         return self.role == 0
 
+post_tags = db.Table('entry_tags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id')),
+    db.Column('post_id', db.Integer, db.ForeignKey('post.id'))
+)
+
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_update = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
+    summary = db.Column(db.Text, nullable=True, default='')
     slug = db.Column(db.String(255), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     active_state = db.Column(db.String, nullable=True)
-    details = db.relationship('PostDetails', backref='post', lazy=True)
+    tags = db.relationship('Tags', secondary=post_tags, backref=db.backref('Posts', lazy='dynamic'))
     def __repr__(self):
         return f"Post('{self.title}', '{self.date_posted}, slug='{self.slug}')"
 
-class PostDetails(db.Model):
+class Tags(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
-    attr = db.Column(db.String(25), nullable=False)
-    value = db.Column(db.Text, nullable=False)
-    displayOrder = db.Column(db.Integer, nullable=False)
-    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    name = db.Column(db.String(64), nullable=False)
+    slug = db.Column(db.String(64), unique=True)
+
+    def __init__(self, *args, **kwargs):
+            super(Tags, self).__init__(*args, **kwargs)
+            self.slug = slugify(self.name)
+
     def __repr__(self):
-        return f"PostDetails(post='{Post.Title}',attr='{self.attr}', value='{self.value}')"
+        return f"Tags(name='{self.name}')"
+    def __str__(self):
+        return f"{self.name}"
 
 class userPageView(db.Model):
     id = db.Column(db.Integer, primary_key=True)

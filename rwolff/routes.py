@@ -1,9 +1,9 @@
 from rwolff.forms import RegistrationForm, projectForm, LoginForm, UpdateAccountForm, projectDetailsForm, postForm
-from rwolff.models import userPageView, User, Projectheader, Projectdetails, Post
+from rwolff.models import userPageView, User, Projectheader, Projectdetails, Post, post_tags, Tags
 from rwolff import app, db, bcrypt, track_pageviews
 from flask import Flask, render_template, url_for, flash, redirect, request, make_response, session, jsonify, send_file, Response
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from flask_login import login_user, current_user, logout_user, login_required
 from slugify import slugify
 from bs4 import BeautifulSoup
@@ -65,9 +65,6 @@ def is_contributor(func):
             return redirect(url_for('home'))
     return wrapper
 
-@app.route('/testtest')
-def testtest():
-    return render_template('test.html')
 
 @app.route("/projects/add", methods=['GET', 'POST'])
 @is_contributor
@@ -106,7 +103,7 @@ def add_project():
 @app.route('/')
 @tracker
 def home():
-    return render_template('index.html')
+    return redirect(url_for('posts'))
 
 @app.route("/register", methods=['GET', 'POST'])
 @tracker
@@ -176,70 +173,62 @@ def update_project(project_id):
 
     return render_template('addProject.html', title='Update Project', form=form, legend='Update Project',project = project, formDetails=formDetails, formTags=formTags)
 
+def get_post_summary(content):
+    soup = BeautifulSoup(content, 'html.parser')
+    summary = soup.find('summary')
+    if summary is None:
+        return  content
+    else:
+        return summary.prettify()
+
 ##### Blog Post Routes #####
 @app.route('/addPost', methods=['GET','POST'])
 def add_post():
+    form = postForm()
+    print(request.method)
     if request.method == 'POST':
-        try:
-
+        if form.validate_on_submit():
             post = Post(
-                title = request.form['title'],
-                content = request.form['content'],
-                active_state=request.form['active_state'],
-                Author=current_user,
-                slug = slugify(request.form['title']) if request.form['slug'] == '' else request.form['slug']
+                title = form.title.data,
+                content = form.content.data,
+                active_state = form.active_state.data,
+                Author = current_user,
+                slug = slugify(request.form['title']) if form.slug.data == '' else form.slug.data,
+                summary = get_post_summary(form.content.data),
+                tags = form.tags.data
             )
 
             print(post)
 
             db.session.add(post)
-            db.session.flush()
-            #if False: # Ignore any detail data
-                #for k,v in request.form.items():
-                #    if 'projectDesc' in k:
-                #        if v is None or v == '':
-                #            continue
-                #        projectDeet = Projectdetails(
-                #            project_id=project.id,
-                #            attr = "Detail",
-                #            value = v,
-                #            displayOrder = int(re.findall('[0-9]', k)[0])
-                #        )
-                #        db.session.add(projectDeet)
-                #        print(projectDeet)
-                #print(project)
             db.session.commit()
             flash(f"Post created for {request.form['title']}!", 'success')
             return redirect(url_for('update_post',post_id=post.id))
-        except Exception as e:
-            print(e)
-            db.session.rollback()
+        else:
             flash(f'Failed to create post','failure')
-    form = postForm()
     return render_template('addPost.html', title='New Post', form=form, legend='Create a New Post', post=None, images=postPhotoGallery())#formDetails=formDetails, formTags=formTags)
 
     #formDetails = projectDetailsForm()
     #formTags = projectDetailsForm()
 
 @app.route("/posts")
+@app.route("/posts/tag/<path:tag>")
 @tracker
-def posts():
-    posts=Post.query.order_by(Post.date_posted.desc()).all()
-    for post in posts:
-        soup = BeautifulSoup(post.content, 'html.parser')
-        summary = soup.find('summary')
-        post.content = summary
-
-    return render_template('posts.html',posts=posts)
+def posts(**kwargs):
+    tags = db.engine.execute("select tags.name, count(*) count FROM tags JOIN entry_tags on tags.id = entry_tags.tag_id GROUP BY tags.name")
+    print(db.session.query(Tags.name, func.count(Tags.Posts).label('count')).group_by(Tags.name))
+    if (kwargs.get('tag')):
+        posts=Post.query.join(post_tags).join(Tags).filter(Tags.name==kwargs.get('tag')).all()
+    else:
+        posts=Post.query.order_by(Post.date_posted.desc()).all()
+    return render_template('posts.html',posts=posts, tags=tags)
 
 @app.route("/posts/<int:post_id>")
 @app.route("/posts/<path:slug>")
 @tracker
 def post(**kwargs):
     blogPost = Post.query.filter((Post.id == kwargs.get('post_id')) | (Post.slug == kwargs.get('slug'))).first()
-    print(blogPost)
     return render_template('post.html', title='Post',blogPost=blogPost)
-
 
 @app.route("/posts/<int:post_id>/update", methods=['GET', 'POST'])
 @login_required
@@ -254,10 +243,13 @@ def update_post(**kwargs):
     form = postForm()
 
     if form.validate_on_submit():
+        print(get_post_summary(form.content.data))
         blogPost.title = form.title.data
         blogPost.content = form.content.data
         blogPost.active_state = form.active_state.data
         blogPost.slug = form.slug.data
+        blogPost.tags = form.tags.data
+        blogPost.summary = get_post_summary(form.content.data)
         db.session.commit()
         flash('Post has been updated', 'success')
         return redirect(url_for('post', slug=blogPost.slug))
@@ -266,6 +258,7 @@ def update_post(**kwargs):
         form.title.data = blogPost.title
         form.content.data = blogPost.content
         form.active_state.data = blogPost.active_state
+        form.tags.data = blogPost.tags
         form.slug.data = blogPost.slug
 
     return render_template('addPost.html', title='Update Post', form=form, legend='Update Post', post=blogPost,images=postPhotoGallery())

@@ -3,23 +3,31 @@
         <article class="media content-section">
           <div class="media-body">
             <div class="article-metadata">
-              About Me:
-              <small class="text-muted">A Brief History</small>
+              About Me
             </div>
             <h2>Who I am</h2>
             <div class="row">
                 <div class="col-sm-3">
                     <img src="{{url_for('static', filename='imgs/richWolff.JPG')}}" class="img-thumbnail" style="width:100%" />
                 </div>
-                <div class="col-sm-7">
-                    <p>I'm a {{ age }} year old Data Scientist from the Greater NYC Market. I specialize in using existing data science models to solve general business problems.</p>
+                <div class="col-sm-8">
+                    <p>My name is Richard Wolff and I am a data scientist at AJ Madison, an e-commerce home appliance store. I have about 6 years of experience in the working with data in durable goods and am looking to expand that to other verticals.</p>
+                    <p>I am also the community head for Springboard's Data Science and UX in person community.</p>
+                    <p>Other than data, my life consists of my loving family (including our recent addition James), traveling, and the future impact technology will have on our everyday lives.</p>
+
+                </div>
+            </div>
+            <br>
+            <h2>Networking</h2>
+            <div class="row">
+                <div class="col-sm-11">
+                    <p>I'm always looking for networking opportunites, potential entrepreneurship opportunities, and am open to discussing career opportunities. Don't be afraid to reach out on linked in, twitter or though email.</p>
+
                     <p>Linkedin: <a href="{{ url_for('outboundLinks', url='https://www.linkedin.com/in/richwolff') }}" target="_blank">LinkedIn</a></p>
+                    <p>Email: <a href="mailto:richwolff12@gmail.com">richwolff12@gmail.com</a></p>
                     <p>Github: <a href="{{ url_for('outboundLinks', url='https://github.com/RichWolff') }}" target="_blank">Github Repositories</a></p>
                 </div>
             </div>
-
-            <h2>Who I am</h2>
-            <p class="article-content">Blah blah blah</p>
           </div>
         </article>
 {% endblock content %}

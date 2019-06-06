@@ -38,6 +38,19 @@
                     {% endif %}
                 </div>
                 <div class="form-group">
+                    {{ form.tags.label(class="form-control-label") }}
+                    {% if form.tags.errors %}
+                        {{ form.tags(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.tags.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.tags(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
                     {% if form.content.errors %}
                         {{ form.content(class="form-control form-control-lg is-invalid",rows='10') }}
                         <div class="invalid-feedback">
@@ -48,7 +61,7 @@
                     {% else %}
                         {{ form.content(class="form-control form-control-lg",rows='20') }}
                         <SCRIPT>
-
+                                var node = document.createElement('summary');
                                 $('#content').summernote({
                             		toolbar: [
                             		    ['style', ['style']],
@@ -59,6 +72,7 @@
                             			["para", ["ul", "ol", "paragraph",'height']],
                             			["insert", ["link", "picture", "video", "hr","table","gallery"]],
                             			['view', ['fullscreen', 'codeview', 'help', 'undo', 'redo']],
+                            			['insertNode',[node],]
                             		],
                             		callbacks :{
                                         onInit: function() {

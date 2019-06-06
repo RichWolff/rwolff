@@ -21,12 +21,7 @@
             {% if current_user.is_contributor or current_user.is_admin %}
             <small><br></small>
             {% endif %}
-          <div class="content-section">
-              <ul class="list-group">
-                <li class="list-group-item list-group-item-light">Latest Posts</li>
-              </ul>
-            </p>
-          </div>
+            {% block sidebar %} {% endblock sidebar %}
         </div>
       </div>
     </main>

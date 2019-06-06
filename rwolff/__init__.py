@@ -21,7 +21,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = dt.timedelta(days=2922) # Set for 8 Y
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
-migrate = Migrate(app, db)
+migrate = Migrate(app, db,compare_type=True)
 Share(app)
 
 class Anonymous(AnonymousUserMixin):

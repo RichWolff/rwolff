@@ -13,8 +13,9 @@
                         </h2>
                         <p class="article-metadata">
                             <small>Date Created: {{ post.date_posted.strftime('%Y-%m-%d') }} - Date Updated: {{ post.last_update.strftime('%Y-%m-%d') }} {% if not post.active_state == 'Active' %}<img height="10" width="10" src="{{ url_for('static',filename='imgs/red_dot.png') }}"/>{% endif %}</small>
+                            <BR><small>Tags: {% for tag in post.tags %} <a href="{{ url_for('posts',tag=tag.name) }}">{{ tag.name }}</a> {% endfor %}</small>
                         </p>
-                        <p class="article-content">{{ post.content|safe }}</p>
+                        <p class="article-content">{{ post.summary|safe }}</p>
                         <small class="text-muted text-right align-bottom"> <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">Read Post</a></small>
                     </div>
                 </article>
@@ -27,8 +28,9 @@
                         </h2>
                         <p class="article-metadata">
                             <small>Date Created: {{ post.date_posted.strftime('%Y-%m-%d') }} - Date Updated: {{ post.last_update.strftime('%Y-%m-%d') }} {% if not post.active_state == 'Active' %}<img height="10" width="10" src="{{ url_for('static',filename='imgs/red_dot.png') }}"/>{% endif %}</small>
+                            <BR><small>Tags: {% for tag in post.tags %} <a href="{{ url_for('posts',tag=tag.name) }}">{{ tag.name }}</a> {% endfor %}</small>
                         </p>
-                        <p class="article-content">{{ post.content|safe }}</p>
+                        <div class="article-content">{{ post.summary|safe }}</p>
                         <small class="text-muted text-right align-bottom"> <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">Read Post</a></small>
                     </div>
                 </article>
@@ -36,3 +38,11 @@
         {% endif %}
     {% endfor %}
 {% endblock content %}
+{% block sidebar %}
+<div class="content-section">
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-light">Latest Posts</li>
+        <p>{% for tag in tags %} {{ tag.name }}: {{ tag.count }}<BR> {% endfor %}</p>
+    </ul>
+</div>
+{% endblock sidebar %}
