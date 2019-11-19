@@ -1,7 +1,7 @@
 {% extends "blogLayout.html" %}
 {% block content %}
     {% if current_user.is_contributor or current_user.is_admin %}
-        <small><a href="{{ url_for('add_post') }}" class="text-info">Add New Post</a></small>
+        <small><a href="{{ url_for('add_post') }}" class="text-info">{% if content_type == 'Blog Posts' %} Add New Post {% else %} Add New Project {% endif %} </a></small>
     {% endif %}
 
     {% for post in posts %}
@@ -13,9 +13,9 @@
                         </h2>
                         <p class="article-metadata">
                             <small>Date Created: {{ post.date_posted.strftime('%Y-%m-%d') }} - Date Updated: {{ post.last_update.strftime('%Y-%m-%d') }} {% if not post.active_state == 'Active' %}<img height="10" width="10" src="{{ url_for('static',filename='imgs/red_dot.png') }}"/>{% endif %}</small>
-                            <BR><small>Tags: {% for tag in post.tags %} <a href="{{ url_for('posts',tag=tag.name) }}">{{ tag.name }}</a> {% endfor %}</small>
+                            <BR><small><img width="20" height="20" src="https://img.icons8.com/windows/32/000000/tag-window.png"> {% for tag in post.tags %} <a href="{{ url_for('posts',tag=tag.name) }}">{{ tag.name }}</a>{{ ',' if not loop.last }} {% endfor %}</small>
                         </p>
-                        <p class="article-content">{{ post.summary|safe }}</p>
+                        <p>{{ post.summary|safe }}</p>
                         <small class="text-muted text-right align-bottom"> <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">Read Post</a></small>
                     </div>
                 </article>
@@ -28,9 +28,9 @@
                         </h2>
                         <p class="article-metadata">
                             <small>Date Created: {{ post.date_posted.strftime('%Y-%m-%d') }} - Date Updated: {{ post.last_update.strftime('%Y-%m-%d') }} {% if not post.active_state == 'Active' %}<img height="10" width="10" src="{{ url_for('static',filename='imgs/red_dot.png') }}"/>{% endif %}</small>
-                            <BR><small>Tags: {% for tag in post.tags %} <a href="{{ url_for('posts',tag=tag.name) }}">{{ tag.name }}</a> {% endfor %}</small>
+                            <BR><small><img width="20" height="20" src="https://img.icons8.com/windows/32/000000/tag-window.png"> {% for tag in post.tags %} <a href="{{ url_for('posts',tag=tag.name) }}">{{ tag.name }}</a>{{ ',' if not loop.last }} {% endfor %}</small>
                         </p>
-                        <div class="article-content">{{ post.summary|safe }}</p>
+                        <div>{{ post.summary|safe }}</p>
                         <small class="text-muted text-right align-bottom"> <a class="article-title" href="{{ url_for('post', slug=post.slug) }}">Read Post</a></small>
                     </div>
                 </article>

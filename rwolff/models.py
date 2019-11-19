@@ -51,6 +51,7 @@ class Post(db.Model):
     slug = db.Column(db.String(255), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     active_state = db.Column(db.String, nullable=True)
+    post_type = db.Column(db.String, nullable=True)
     tags = db.relationship('Tags', secondary=post_tags, backref=db.backref('Posts', lazy='dynamic'))
     def __repr__(self):
         return f"Post('{self.title}', '{self.date_posted}, slug='{self.slug}')"

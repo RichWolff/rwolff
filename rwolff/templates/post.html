@@ -1,13 +1,10 @@
+<script> dataLayer = [{'postTitle': '{{ blogPost.title }}'}]; </script>
 {% extends "blogLayout.html" %}
 {% block content %}
-
-<!-- Add font awesome icons -->
-
-
     {% if current_user==blogPost.user_id or current_user.is_admin %}
         <small><a href="{{ url_for('update_post',post_id= blogPost.id) }}" class="text-info">Edit Post</a></small>
     {% endif %}
-    <div class="row">
+    <div class="row" >
         <article class="media content-section">
             <div class="media-body">
                 <h2>
@@ -19,7 +16,6 @@
                 <p class="article-content">{{ blogPost.content|safe }}</p>
                 <a href="#top"><img height="40" width="40" src="{{ url_for('static',filename='imgs/backtotop.png') }}"/></a>
             </div>
-
         </article>
     </div>
     <div class="row">
@@ -32,3 +28,12 @@
         </p>
     </div>
 {% endblock content %}
+
+{% block sidebar %}
+<div class="content-section">
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-light">Recommended Posts</li>
+        <p>{% for tag in tags %} {{ tag.name }}: {{ tag.count }}<BR> {% endfor %}</p>
+    </ul>
+</div>
+{% endblock sidebar %}

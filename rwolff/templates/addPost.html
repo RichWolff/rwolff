@@ -60,31 +60,36 @@
                         </div>
                     {% else %}
                         {{ form.content(class="form-control form-control-lg",rows='20') }}
+
                         <SCRIPT>
-                                var node = document.createElement('summary');
                                 $('#content').summernote({
-                            		toolbar: [
-                            		    ['style', ['style']],
-                            			['font', ["bold", "italic", "underline", "clear"]],
-                            			["fontname", ["fontname"]],
-                            			["fontsize", ["fontsize"]],
-                            			["color", ["color"]],
-                            			["para", ["ul", "ol", "paragraph",'height']],
-                            			["insert", ["link", "picture", "video", "hr","table","gallery"]],
-                            			['view', ['fullscreen', 'codeview', 'help', 'undo', 'redo']],
-                            			['insertNode',[node],]
-                            		],
-                            		callbacks :{
+                                    height: 500,
+                                    toolbar: [
+                                        ['style', ['style','codeblock','summary']],
+                                        ['font', ["bold", "italic", "underline", "clear"]],
+                                        ["fontname", ["fontname"]],
+                                        ["fontsize", ["fontsize"]],
+                                        ["color", ["color"]],
+                                        ["para", ["ul", "ol", "paragraph",'height']],
+                                        ["insert", ["link", "picture", "video", "hr","table","gallery"]],
+                                        ['view', ['fullscreen', 'codeview', 'help', 'undo', 'redo']],
+                                    ],
+                                    callbacks :{
                                         onInit: function() {
                                             $(this).data('image_dialog_images_html', `<div class="row">{% for img in images %}<div class="col-md-2 img-item"><img class="col-md-12 thumbnail" src="{{ url_for('static', filename='imgs/posts/'+img) }}" alt="a galerie test" /><i class="fa fa-check"></i></div>{% endfor %} </div>`);
-                                            $(this).data('image_dialog_title', "La galerie d'images");
-                                            $(this).data('image_dialog_close_btn_text', "Fermer");
-                                            $(this).data('image_dialog_ok_btn_text', "Ajouter");
+                                            $(this).data('image_dialog_title', "Image Gallery");
+                                            $(this).data('image_dialog_close_btn_text', "Close");
+                                            $(this).data('image_dialog_ok_btn_text', "Ok");
                                         }
+                                    },
+                                    codemirror: {
+                                        mode: 'text/html',
+                                        htmlMode: true,
+                                        lineNumbers: true,
+                                        lineWrapping: true,
+                                        theme: 'monokai'
                                     }
-
                                 });
-
                         </SCRIPT>
                     {% endif %}
 
@@ -96,10 +101,19 @@
                     {{ form.active_state.label(class="form-control-label") }}
                     <UL style="list-style: none; padding:0;">
                         {% for state in form.active_state %}
-                        <small><LI >{{ state }} {{ state.label }}</LI></small>
+                        <small><LI>{{ state }} {{ state.label }}</LI></small>
                         {% endfor %}
                     </UL>
-                 </div>
+                </div>
+                <hr>
+                <div class="form-group">
+                    {{ form.post_type.label(class_="form-control-label") }}
+                    <UL style="list-style: none; padding:0;">
+                        {% for pType in form.post_type %}
+                        <small><LI>{{ pType }} {{ pType.label }}</LI></small>
+                        {% endfor %}
+                    </UL>
+                </div>
                  <div>
                     <a href="#" onClick="MyWindow=window.open(`{{ url_for('postUploadImages') }}`,'MyWindow', width='200', height='100'); return false;">Upload New Images</a>
                  </div>

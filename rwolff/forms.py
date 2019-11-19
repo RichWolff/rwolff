@@ -49,6 +49,7 @@ class postForm(FlaskForm):
     slug = StringField('Url Slug')
     content = TextAreaField('Content', validators=[DataRequired()])
     active_state = RadioField('Project Display State', choices = [('Active','Active'), ('Preview','Preview'), ('Disable','Disable')])
+    post_type = RadioField('Blog Post or Project', choices = [('Blog Post','Blog Post'), ('Project','Project')])
     tags = TagField('Tags')
     submit = SubmitField('Submit Post')
 

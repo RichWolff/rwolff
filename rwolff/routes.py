@@ -36,10 +36,13 @@ def tracker(func):
         # get user agent
         user_agent = request.headers.get('User-Agent')
 
+        resp = make_response(func(**kwargs))
         # If no session data, then create new session data
-        if session.get('FVID') is None:
-            session['FVID'] = secrets.token_hex(32)
-            session_id = session.get('FVID')
+        if not 'FVID' in request.cookies:
+            session_id = secrets.token_hex(32)
+            resp.set_cookie(key='FVID',value=session_id, expires=dt.datetime.now()+dt.timedelta(2922))
+        else:
+            session_id = request.cookies['FVID']
 
         # If user is clicking an outbound link, track this instead out /outboundLinks
         to_url = request.args.get('url', default=None, type=None) if base_url == request.url_root + 'outboundLinks' else base_url
@@ -50,7 +53,7 @@ def tracker(func):
         else:
             print(pv)
         x = func(**kwargs)
-        return x
+        return resp
     return wrapper
 
 def is_contributor(func):
@@ -71,26 +74,32 @@ def is_contributor(func):
 @login_required
 def add_project():
     if request.method == 'POST':
+
         try:
             project = Projectheader(title = request.form['title'], description = request.form['description'], start_date = request.form['start_date'], end_date = request.form['end_date'],active_state=request.form['active_state'], Creator=current_user)
             db.session.add(project)
             db.session.flush()
+
             for k,v in request.form.items():
                 if 'projectDesc' in k:
+
                     if v is None or v == '':
                         continue
+
                     projectDeet = Projectdetails(
                         project_id=project.id,
                         attr = "Detail",
                         value = v,
                         displayOrder = int(re.findall('[0-9]', k)[0])
                     )
+
                     db.session.add(projectDeet)
-                    print(projectDeet)
-            print(project)
+
             db.session.commit()
             flash(f"Project created for {request.form['title']}!", 'success')
+
             return redirect(url_for('projects'))
+
         except Exception as e:
             print(e)
             db.session.rollback()
@@ -122,9 +131,23 @@ def register():
 
 @app.route("/projects")
 @tracker
-def projects():
-    projects=Projectheader.query.all()
-    return render_template('projects.html',projects=projects)
+def projects(**kwargs):
+    tags = db.engine.execute("""
+        Select
+            tags.name,
+            count(*) count
+        FROM tags
+        JOIN entry_tags
+            ON tags.id = entry_tags.tag_id
+        JOIN post
+            ON entry_tags.post_id = post.id
+        WHERE post.active_state = 'Active' and post.post_type = 'Project'
+        GROUP BY tags.name""")
+    if (kwargs.get('tag')):
+        posts=Post.query.join(post_tags).join(Tags).filter(Tags.name==kwargs.get('tag')).all()
+    else:
+        posts=Post.query.filter(Post.post_type=='Project').order_by(Post.date_posted.desc()).all()
+    return render_template('posts.html',posts=posts, tags=tags, content_type='Projects')
 
 @app.route("/projects/<int:project_id>", methods=['GET', 'POST'])
 def project(project_id):
@@ -185,13 +208,14 @@ def get_post_summary(content):
 @app.route('/addPost', methods=['GET','POST'])
 def add_post():
     form = postForm()
-    print(request.method)
+
     if request.method == 'POST':
         if form.validate_on_submit():
             post = Post(
                 title = form.title.data,
                 content = form.content.data,
                 active_state = form.active_state.data,
+                post_type = form.post_type.data,
                 Author = current_user,
                 slug = slugify(request.form['title']) if form.slug.data == '' else form.slug.data,
                 summary = get_post_summary(form.content.data),
@@ -211,23 +235,33 @@ def add_post():
     #formDetails = projectDetailsForm()
     #formTags = projectDetailsForm()
 
+
 @app.route("/posts")
 @app.route("/posts/tag/<path:tag>")
 @tracker
 def posts(**kwargs):
-    tags = db.engine.execute("select tags.name, count(*) count FROM tags JOIN entry_tags on tags.id = entry_tags.tag_id GROUP BY tags.name")
-    print(db.session.query(Tags.name, func.count(Tags.Posts).label('count')).group_by(Tags.name))
+    tags = db.engine.execute("""
+        Select
+            tags.name,
+            count(*) count
+        FROM tags
+        JOIN entry_tags
+            ON tags.id = entry_tags.tag_id
+        JOIN post
+            ON entry_tags.post_id = post.id
+        WHERE post.active_state = 'Active' and post.post_type = 'Blog Post'
+        GROUP BY tags.name""")
     if (kwargs.get('tag')):
         posts=Post.query.join(post_tags).join(Tags).filter(Tags.name==kwargs.get('tag')).all()
     else:
-        posts=Post.query.order_by(Post.date_posted.desc()).all()
-    return render_template('posts.html',posts=posts, tags=tags)
+        posts=Post.query.filter(Post.post_type=='Blog Post').order_by(Post.date_posted.desc()).all()
+    return render_template('posts.html',posts=posts, tags=tags, content_type='Blog Posts')
 
 @app.route("/posts/<int:post_id>")
 @app.route("/posts/<path:slug>")
 @tracker
 def post(**kwargs):
-    blogPost = Post.query.filter((Post.id == kwargs.get('post_id')) | (Post.slug == kwargs.get('slug'))).first()
+    blogPost = Post.query.filter( ((Post.id == kwargs.get('post_id')) | (Post.slug == kwargs.get('slug')))).first()
     return render_template('post.html', title='Post',blogPost=blogPost)
 
 @app.route("/posts/<int:post_id>/update", methods=['GET', 'POST'])
@@ -247,6 +281,7 @@ def update_post(**kwargs):
         blogPost.title = form.title.data
         blogPost.content = form.content.data
         blogPost.active_state = form.active_state.data
+        blogPost.post_type = form.post_type.data
         blogPost.slug = form.slug.data
         blogPost.tags = form.tags.data
         blogPost.summary = get_post_summary(form.content.data)
@@ -258,6 +293,7 @@ def update_post(**kwargs):
         form.title.data = blogPost.title
         form.content.data = blogPost.content
         form.active_state.data = blogPost.active_state
+        form.post_type.data = blogPost.post_type
         form.tags.data = blogPost.tags
         form.slug.data = blogPost.slug
 
@@ -334,7 +370,6 @@ def save_post_pictures(form_picture):
     random_hex = secrets.token_hex(8)
     picture_fn = form_picture.filename
     picture_path = os.path.join(app.root_path, 'static/imgs/posts', picture_fn)
-
     output_size = (125, 125)
     i = Image.open(form_picture)
     i.save(picture_path)
@@ -346,7 +381,7 @@ def postPhotoGallery():
     imgs = url_for('static',filename='imgs/posts')
     folder = os.path.join(homeDir+imgs)
 
-    types = ('*.png', '*.jpg','*.gif','*.jpeg') # the tuple of file types
+    types = ('*.png', '*.jpg','*.gif','*.jpeg','*.PNG') # the tuple of file types
     files_grabbed = []
 
     for files in types:
@@ -360,7 +395,6 @@ def postPhotoGallery():
 @app.route("/postUploadImages", methods=["GET","POST"])
 def postUploadImages():
     files = request.files.getlist("file[]")
-    print(files)
     if not files == []:
         uploaded_files = request.files.getlist("file[]")
         for file in uploaded_files:

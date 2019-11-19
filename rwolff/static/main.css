@@ -1,3 +1,7 @@
+@-ms-viewport{
+  width: device-width;
+}
+
 body {
   background: #fafafa;
   color: #333333;
@@ -24,6 +28,12 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
 }
 
+.table-contents {
+    background: #f1f1f1;
+    border: 1px solid #5f788a;
+    padding: 20px;
+}
+
 .center {
   margin: auto;
   width: 50%;
@@ -48,11 +58,17 @@ a.article-title:hover {
   text-decoration: none;
 }
 
-pre code .codeblock {
-  background-color: #eeeeee;
-  border: 1px solid #999999;
-  display: block;
-  padding: 20px;
+code {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0;
+    font-size: 11.52px;
+    line-height: 1.2;
+
+    background-color: #eeeeee;
+    border: 1px solid #999999;
+    padding: 20px;
 }
 
 .article-content {
