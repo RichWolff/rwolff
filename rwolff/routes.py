@@ -112,7 +112,7 @@ def add_project():
 @app.route('/')
 @tracker
 def home():
-    return redirect(url_for('posts'))
+    return render_template('index.html')
 
 @app.route("/register", methods=['GET', 'POST'])
 @tracker
