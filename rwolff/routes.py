@@ -112,7 +112,9 @@ def add_project():
 @app.route('/')
 @tracker
 def home():
-    return render_template('index.html')
+    posts = Post.query.filter(Post.post_type=='Blog Post').order_by(Post.date_posted.desc()).limit(3).all()
+    projects = Post.query.filter(Post.post_type=='Project').order_by(Post.date_posted.desc()).limit(3).all()
+    return render_template('index.html', posts=posts, projects=projects)
 
 @app.route("/register", methods=['GET', 'POST'])
 @tracker
