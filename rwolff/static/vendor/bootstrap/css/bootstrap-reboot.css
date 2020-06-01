@@ -317,7 +317,8 @@ output {
 }
 
 summary {
-  display: list-item;
+  display:list-item;
+  list-style: none;
   cursor: pointer;
 }
 
